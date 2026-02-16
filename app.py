@@ -99,15 +99,26 @@ st.markdown(
         color-scheme: light;
     }
 
-    /* Force all text in the main area to be dark — fixes iPhone dark mode */
-    .stApp, .stApp * {
+    /* Force MAIN AREA text to be dark — fixes iPhone dark mode */
+    /* Scoped to stMainBlockContainer so it does NOT touch the sidebar */
+    [data-testid="stMainBlockContainer"],
+    [data-testid="stMainBlockContainer"] * {
         color: #1A1A2E;
     }
-    .stApp p, .stApp span, .stApp li, .stApp h1, .stApp h2,
-    .stApp h3, .stApp h4, .stApp h5, .stApp h6,
-    .stApp strong, .stApp em, .stApp code,
-    .stApp [data-testid="stMarkdownContainer"],
-    .stApp [data-testid="stMarkdownContainer"] * {
+    [data-testid="stMainBlockContainer"] p,
+    [data-testid="stMainBlockContainer"] span,
+    [data-testid="stMainBlockContainer"] li,
+    [data-testid="stMainBlockContainer"] h1,
+    [data-testid="stMainBlockContainer"] h2,
+    [data-testid="stMainBlockContainer"] h3,
+    [data-testid="stMainBlockContainer"] h4,
+    [data-testid="stMainBlockContainer"] h5,
+    [data-testid="stMainBlockContainer"] h6,
+    [data-testid="stMainBlockContainer"] strong,
+    [data-testid="stMainBlockContainer"] em,
+    [data-testid="stMainBlockContainer"] code,
+    [data-testid="stMainBlockContainer"] [data-testid="stMarkdownContainer"],
+    [data-testid="stMainBlockContainer"] [data-testid="stMarkdownContainer"] * {
         color: #1A1A2E !important;
     }
 
@@ -117,15 +128,20 @@ st.markdown(
         color: white !important;
     }
 
-    /* Keep sidebar light text */
+    /* ── Sidebar: dark charcoal with coral accents ── */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #1A1A2E 0%, #16213E 100%);
+    }
     [data-testid="stSidebar"],
     [data-testid="stSidebar"] * {
         color: #F0F0F0 !important;
     }
-
-    /* ── Sidebar: dark charcoal with coral accents ── */
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #1A1A2E 0%, #16213E 100%);
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] span,
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"],
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] * {
+        color: #F0F0F0 !important;
     }
     [data-testid="stSidebar"] .stMetric label {
         color: #94A3B8 !important;
