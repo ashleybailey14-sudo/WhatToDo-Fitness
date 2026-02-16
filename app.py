@@ -382,6 +382,10 @@ if "last_workout" not in st.session_state:
     st.session_state.last_workout = None
 if "last_dinner" not in st.session_state:
     st.session_state.last_dinner = None
+if "eq_form_key" not in st.session_state:
+    st.session_state.eq_form_key = 0
+if "food_form_key" not in st.session_state:
+    st.session_state.food_form_key = 0
 
 
 # ─── Ensure Default Users Exist in DB ────────────────────────────────
@@ -672,7 +676,7 @@ elif user_is_configured(profile):
 
         st.divider()
         st.markdown("#### ➕ Add Equipment")
-        with st.form("add_equipment_form"):
+        with st.form(f"add_equipment_form_{st.session_state.eq_form_key}"):
             eq_name = st.text_input("Equipment Name", placeholder="e.g., Kettlebell")
             eq_category = st.selectbox(
                 "Category",
@@ -684,6 +688,7 @@ elif user_is_configured(profile):
             if eq_submit and eq_name.strip():
                 add_equipment(profile["user_name"], eq_name.strip(), eq_category, eq_notes)
                 st.success(f"Added **{eq_name.strip()}**!")
+                st.session_state.eq_form_key += 1
                 st.rerun()
 
     # ── Food Preferences Tab ──────────────────────────────────────────
@@ -716,7 +721,7 @@ elif user_is_configured(profile):
 
         st.divider()
         st.markdown("#### ➕ Add Food Preference")
-        with st.form("add_food_form"):
+        with st.form(f"add_food_form_{st.session_state.food_form_key}"):
             fp_item = st.text_input(
                 "Food Item or Category",
                 placeholder="e.g., High Protein, Shellfish, Mexican food",
@@ -736,6 +741,7 @@ elif user_is_configured(profile):
                     profile["user_name"], fp_item.strip(), fp_type, fp_goal
                 )
                 st.success(f"Added **{fp_item.strip()}**!")
+                st.session_state.food_form_key += 1
                 st.rerun()
 
     # ── Edit Profile Tab ──────────────────────────────────────────────
