@@ -93,17 +93,39 @@ def get_avatar(user_name: str) -> dict:
 st.markdown(
     """
     <style>
-    /* ── Base ── */
+    /* ── Base: force light theme regardless of device dark mode ── */
     .stApp {
         background: #FAFAFA;
+        color-scheme: light;
+    }
+
+    /* Force all text in the main area to be dark — fixes iPhone dark mode */
+    .stApp, .stApp * {
+        color: #1A1A2E;
+    }
+    .stApp p, .stApp span, .stApp li, .stApp h1, .stApp h2,
+    .stApp h3, .stApp h4, .stApp h5, .stApp h6,
+    .stApp strong, .stApp em, .stApp code,
+    .stApp [data-testid="stMarkdownContainer"],
+    .stApp [data-testid="stMarkdownContainer"] * {
+        color: #1A1A2E !important;
+    }
+
+    /* Keep buttons white text */
+    .stButton > button, .stButton > button *,
+    .stFormSubmitButton > button, .stFormSubmitButton > button * {
+        color: white !important;
+    }
+
+    /* Keep sidebar light text */
+    [data-testid="stSidebar"],
+    [data-testid="stSidebar"] * {
+        color: #F0F0F0 !important;
     }
 
     /* ── Sidebar: dark charcoal with coral accents ── */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, #1A1A2E 0%, #16213E 100%);
-    }
-    [data-testid="stSidebar"] * {
-        color: #F0F0F0 !important;
     }
     [data-testid="stSidebar"] .stMetric label {
         color: #94A3B8 !important;
@@ -229,9 +251,20 @@ st.markdown(
         color: white !important;
         box-shadow: 0 4px 15px rgba(255, 107, 107, 0.35);
     }
+    .stTabs [aria-selected="true"] *,
     .stTabs [aria-selected="true"] p,
     .stTabs [aria-selected="true"] span {
         color: white !important;
+    }
+
+    /* Info/success/warning box text stays readable */
+    .stAlert, .stAlert * {
+        color: inherit !important;
+    }
+
+    /* Caption/muted text */
+    .stApp .stCaption, .stApp .stCaption * {
+        color: #6B7280 !important;
     }
 
     /* ── Section headers ── */

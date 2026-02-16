@@ -1,5 +1,5 @@
 """
-Gemini AI module for the Galactic Gains Health App.
+Gemini AI module for the FitFlow Health App.
 Generates personalized workout and dinner recommendations.
 """
 
@@ -88,7 +88,8 @@ INSTRUCTIONS:
 - Respect ALL medical notes and limitations. If a limitation is listed, do NOT suggest exercises that could aggravate it.
 - Only suggest exercises that use the available equipment or bodyweight.
 - Include sets, reps (or duration), and brief form cues for each exercise.
-- Keep the tone encouraging and fun — this is Galactic Gains!
+- Keep the tone encouraging, motivating, and professional — this is FitFlow!
+- Do NOT use any space or galaxy themed language. Use modern fitness language instead.
 
 Format the response in clean markdown with clear sections."""
 
@@ -137,7 +138,8 @@ INSTRUCTIONS:
 - Be descriptive and flavorful in your suggestion but do NOT include the full recipe.
   Example good answer: "Lemon pepper grilled chicken with cilantro lime rice and roasted garlic asparagus."
 - After the suggestion, ask: "Would you like the full recipe?"
-- Keep the tone fun and appetizing — this is Galactic Gains fuel!
+- Keep the tone fun, appetizing, and energetic — this is FitFlow fuel!
+- Do NOT use any space or galaxy themed language. Use modern food and wellness language instead.
 
 Format the response in clean markdown."""
 
@@ -181,6 +183,6 @@ Please provide:
 3. Approximate cook time
 4. Any helpful tips
 
-Keep the tone fun and format in clean markdown."""
+Keep the tone fun and energetic — FitFlow style! Format in clean markdown."""
 
     return _generate_with_retry(model, prompt)
