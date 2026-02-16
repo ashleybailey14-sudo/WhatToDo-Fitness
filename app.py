@@ -143,6 +143,29 @@ st.markdown(
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] * {
         color: #F0F0F0 !important;
     }
+
+    /* Sidebar dropdown/select: dark text on white background */
+    [data-testid="stSidebar"] [data-baseweb="select"],
+    [data-testid="stSidebar"] [data-baseweb="select"] * {
+        color: #1A1A2E !important;
+        background-color: #FFFFFF !important;
+    }
+    [data-testid="stSidebar"] [data-baseweb="select"] svg {
+        fill: #1A1A2E !important;
+    }
+    [data-testid="stSidebar"] [data-baseweb="popover"],
+    [data-testid="stSidebar"] [data-baseweb="popover"] *,
+    [data-testid="stSidebar"] [role="listbox"],
+    [data-testid="stSidebar"] [role="listbox"] *,
+    [data-testid="stSidebar"] [role="option"],
+    [data-testid="stSidebar"] [role="option"] * {
+        color: #1A1A2E !important;
+        background-color: #FFFFFF !important;
+    }
+    [data-testid="stSidebar"] [role="option"]:hover {
+        background-color: #F3F4F6 !important;
+    }
+
     [data-testid="stSidebar"] .stMetric label {
         color: #94A3B8 !important;
         font-size: 0.7rem;
@@ -291,6 +314,45 @@ st.markdown(
     h4 {
         color: #374151 !important;
         font-weight: 600 !important;
+    }
+
+    /* ── All input fields: force white bg + dark text (fixes iPhone dark mode) ── */
+    input, textarea,
+    [data-baseweb="input"] input,
+    [data-baseweb="textarea"] textarea,
+    [data-baseweb="input"],
+    [data-baseweb="textarea"],
+    .stTextInput input,
+    .stTextArea textarea,
+    .stNumberInput input,
+    [data-testid="stNumberInput"] input,
+    [data-testid="stTextInput"] input,
+    [data-testid="stTextArea"] textarea {
+        background-color: #FFFFFF !important;
+        color: #1A1A2E !important;
+        -webkit-text-fill-color: #1A1A2E !important;
+        border: 1px solid #D1D5DB !important;
+    }
+    /* Placeholder text */
+    input::placeholder, textarea::placeholder {
+        color: #9CA3AF !important;
+        -webkit-text-fill-color: #9CA3AF !important;
+    }
+    /* Select/dropdown in main area: white bg + dark text */
+    [data-testid="stMainBlockContainer"] [data-baseweb="select"],
+    [data-testid="stMainBlockContainer"] [data-baseweb="select"] * {
+        background-color: #FFFFFF !important;
+        color: #1A1A2E !important;
+    }
+    /* Number input +/- buttons */
+    [data-testid="stNumberInput"] button {
+        background-color: #F3F4F6 !important;
+        color: #1A1A2E !important;
+    }
+    /* Form labels */
+    .stTextInput label, .stTextArea label,
+    .stNumberInput label, .stSelectbox label {
+        color: #1A1A2E !important;
     }
 
     /* ── Dividers ── */
@@ -681,6 +743,10 @@ elif user_is_configured(profile):
         st.markdown("### ⚙️ Edit Profile")
 
         with st.form("edit_profile_form"):
+            edit_name = st.text_input(
+                "Profile Name",
+                value=profile.get("user_name", user),
+            )
             edit_age = st.number_input(
                 "Age", min_value=10, max_value=120, value=profile.get("age", 30)
             )
@@ -713,6 +779,8 @@ elif user_is_configured(profile):
 
             if edit_submit:
                 new_height = (edit_feet * 12) + edit_inches
+                final_name = edit_name.strip() if edit_name.strip() else profile["user_name"]
+
                 upsert_physical_profile(
                     user_name=profile["user_name"],
                     age=edit_age,
@@ -720,7 +788,13 @@ elif user_is_configured(profile):
                     weight_lbs=edit_weight,
                     medical_notes=edit_medical,
                 )
-                st.success("Profile updated!")
+
+                # If name changed, rename the user in the database
+                if final_name != profile["user_name"]:
+                    rename_user(profile["user_name"], final_name)
+                    st.success(f"Profile updated! Name changed to **{final_name}**.")
+                else:
+                    st.success("Profile updated!")
                 st.rerun()
 
 # ─── User exists but not configured (edge case) ──────────────────────
