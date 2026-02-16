@@ -160,6 +160,56 @@ def get_dinner_recommendation(profile: dict, food_prefs: list[dict], history: li
     return _generate_with_retry(model, prompt)
 
 
+def get_vibe_reset(profile: dict, struggles: list[str]) -> str:
+    """Generate a personalized pep talk based on what the user is struggling with."""
+    model = _get_model()
+
+    height_ft = profile.get("height_in", 0) // 12
+    height_remaining = profile.get("height_in", 0) % 12
+
+    struggles_str = "\n".join(f"  - {s}" for s in struggles)
+
+    prompt = f"""You are a supportive, down-to-earth wellness coach — not a therapist, not a
+motivational poster. The user is having a rough time and checked off some things
+they're struggling with today. Your job is to acknowledge what they're feeling,
+normalize it, and give them a few small, actionable things they can do RIGHT NOW
+to feel even a little bit better.
+
+USER PROFILE:
+  Name: {profile.get('user_name', 'Unknown')}
+  Age: {profile.get('age', 'Unknown')}
+  Height: {height_ft}'{height_remaining}"
+  Weight: {profile.get('weight_lbs', 'Unknown')} lbs
+  Medical notes / limitations: {profile.get('medical_notes', 'None')}
+
+WHAT THEY'RE STRUGGLING WITH TODAY:
+{struggles_str}
+
+INSTRUCTIONS:
+- Write 2-3 paragraphs. Not a novel.
+- Do NOT be overly flowery, saccharine, or toxic-positivity. No "You've got this, warrior!" energy.
+  Be real. Be warm. Be human. Think "trusted friend who also knows fitness" not "life coach on Instagram."
+- Acknowledge that not every day is a 10 out of 10 and that's completely normal.
+- Then give 3-4 specific, small action items the user can do today that might help.
+  These should be tailored to their profile (age, limitations, etc.) and connected to
+  the struggles they checked. For example:
+    • If they checked "Lack of Motivation" — suggest a 10-minute walk, not a full workout.
+    • If they checked "Anxiety" — suggest a breathing exercise or a short stretch.
+    • If they checked "Weight / Body Image" — remind them progress isn't linear and suggest
+      something kind they can do for their body today.
+    • If they checked "Grief" or "Sadness" — be gentle. Don't try to fix it. Suggest small
+      comforts and movement.
+- End on a grounded, honest note. Something like "Tomorrow's a new shot at it" — not
+  "You're amazing and the universe loves you!"
+- Keep the tone warm and conversational — this is FitFlow, we keep it real.
+- Do NOT use any space or galaxy themed language.
+- Respect their medical limitations in any physical suggestions.
+
+Format in clean markdown. Use bold for the action items so they stand out."""
+
+    return _generate_with_retry(model, prompt)
+
+
 def get_recipe_details(dinner_description: str, food_prefs: list[dict]) -> str:
     """When the user asks for the full recipe, generate it."""
     model = _get_model()

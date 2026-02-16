@@ -20,7 +20,7 @@ from db import (
     get_recommendation_history,
     save_recommendation,
 )
-from ai import get_workout_recommendation, get_dinner_recommendation, get_recipe_details
+from ai import get_workout_recommendation, get_dinner_recommendation, get_recipe_details, get_vibe_reset
 
 
 # ─── Page Config ──────────────────────────────────────────────────────
@@ -71,6 +71,25 @@ AVATARS = {
         "bg": "#ECFDF5",
     },
 }
+
+# ─── Struggle Bus Options (alphabetical) ─────────────────────────────
+
+STRUGGLE_OPTIONS = [
+    "Anger",
+    "Anxiety",
+    "Blah",
+    "Depression",
+    "Grief",
+    "Imperfection",
+    "Lack of Motivation",
+    "Money",
+    "Sadness",
+    "Sense of Self",
+    "Singleness",
+    "Weight / Body Image",
+    "World Instability",
+]
+
 
 DEFAULT_AVATAR = {
     "emoji": "🌟",
@@ -386,6 +405,8 @@ if "eq_form_key" not in st.session_state:
     st.session_state.eq_form_key = 0
 if "food_form_key" not in st.session_state:
     st.session_state.food_form_key = 0
+if "last_vibe_reset" not in st.session_state:
+    st.session_state.last_vibe_reset = None
 
 
 # ─── Ensure Default Users Exist in DB ────────────────────────────────
@@ -600,8 +621,8 @@ elif user_is_configured(profile):
 
     # ─── TABS ─────────────────────────────────────────────────────────
 
-    tab_recs, tab_equip, tab_food, tab_profile = st.tabs(
-        ["🏋️ Recommendations", "🔧 My Equipment", "🍽️ Food Preferences", "⚙️ Edit Profile"]
+    tab_recs, tab_equip, tab_food, tab_struggle, tab_profile = st.tabs(
+        ["🏋️ Recommendations", "🔧 My Equipment", "🍽️ Food Preferences", "🚌 Struggle Bus", "⚙️ Edit Profile"]
     )
 
     # ── Recommendations Tab ───────────────────────────────────────────
@@ -612,7 +633,7 @@ elif user_is_configured(profile):
         food_prefs = get_food_preferences(profile["user_name"])
         history = get_recommendation_history(profile["user_name"])
 
-        rcol1, rcol2 = st.columns(2)
+        rcol1, rcol2, rcol3 = st.columns(3)
 
         with rcol1:
             st.markdown("#### 🏋️ Workout")
@@ -641,6 +662,28 @@ elif user_is_configured(profile):
                         )
                         st.markdown(recipe)
 
+        with rcol3:
+            st.markdown("#### 🫂 Vibe Check")
+            if st.button("🔄 Reset My Vibe", use_container_width=True):
+                # Gather checked struggles from session state
+                struggle_items = []
+                for item in STRUGGLE_OPTIONS:
+                    if st.session_state.get(f"struggle_{item}", False):
+                        struggle_items.append(item)
+                other_text = st.session_state.get("struggle_other_text", "").strip()
+                if st.session_state.get("struggle_Other", False) and other_text:
+                    struggle_items.append(other_text)
+
+                if not struggle_items:
+                    st.warning("Head over to the **🚌 Struggle Bus** tab first and check off what's weighing on you today.")
+                else:
+                    with st.spinner("Resetting your vibe..."):
+                        vibe = get_vibe_reset(profile, struggle_items)
+                        st.session_state.last_vibe_reset = vibe
+
+            if st.session_state.last_vibe_reset:
+                st.markdown(st.session_state.last_vibe_reset)
+
         # Save both if generated
         if st.session_state.last_workout and st.session_state.last_dinner:
             if st.button("💾 Save today's recommendations to history"):
@@ -656,25 +699,7 @@ elif user_is_configured(profile):
         st.markdown("### 🔧 My Equipment")
         st.caption("Tell us what you have available so we can tailor workouts.")
 
-        equipment = get_equipment(profile["user_name"])
-
-        if equipment:
-            for item in equipment:
-                ecol1, ecol2, ecol3 = st.columns([3, 2, 1])
-                with ecol1:
-                    st.write(f"**{item['name']}**")
-                with ecol2:
-                    st.caption(item.get("category", ""))
-                with ecol3:
-                    if st.button("🗑️", key=f"del_eq_{item['id']}"):
-                        delete_equipment(item["id"])
-                        st.rerun()
-                if item.get("notes"):
-                    st.caption(f"  _{item['notes']}_")
-        else:
-            st.info("No equipment added yet. Add some below!")
-
-        st.divider()
+        # ── Add form FIRST ──
         st.markdown("#### ➕ Add Equipment")
         with st.form(f"add_equipment_form_{st.session_state.eq_form_key}"):
             eq_name = st.text_input("Equipment Name", placeholder="e.g., Kettlebell")
@@ -691,35 +716,31 @@ elif user_is_configured(profile):
                 st.session_state.eq_form_key += 1
                 st.rerun()
 
+        # ── Existing equipment list below ──
+        equipment = get_equipment(profile["user_name"])
+
+        if equipment:
+            st.divider()
+            st.markdown("#### 📋 Your Equipment")
+            for item in equipment:
+                ecol1, ecol2, ecol3 = st.columns([3, 2, 1])
+                with ecol1:
+                    st.write(f"**{item['name']}**")
+                with ecol2:
+                    st.caption(item.get("category", ""))
+                with ecol3:
+                    if st.button("🗑️", key=f"del_eq_{item['id']}"):
+                        delete_equipment(item["id"])
+                        st.rerun()
+                if item.get("notes"):
+                    st.caption(f"  _{item['notes']}_")
+
     # ── Food Preferences Tab ──────────────────────────────────────────
     with tab_food:
         st.markdown("### 🍽️ Food Preferences")
         st.caption("Help us suggest meals you'll actually enjoy.")
 
-        food_prefs = get_food_preferences(profile["user_name"])
-
-        if food_prefs:
-            for fp in food_prefs:
-                fcol1, fcol2, fcol3 = st.columns([3, 2, 1])
-                with fcol1:
-                    st.write(f"**{fp['item_name']}**")
-                with fcol2:
-                    badge_colors = {
-                        "staple": "🟢", "avoid": "🔴", "allergy": "⛔",
-                        "like": "👍", "dislike": "👎",
-                    }
-                    icon = badge_colors.get(fp.get("preference_type", ""), "⚪")
-                    st.caption(f"{icon} {fp.get('preference_type', '')}")
-                with fcol3:
-                    if st.button("🗑️", key=f"del_fp_{fp['id']}"):
-                        delete_food_preference(fp["id"])
-                        st.rerun()
-                if fp.get("nutritional_goal"):
-                    st.caption(f"  _Goal: {fp['nutritional_goal']}_")
-        else:
-            st.info("No food preferences added yet. Add some below!")
-
-        st.divider()
+        # ── Add form FIRST ──
         st.markdown("#### ➕ Add Food Preference")
         with st.form(f"add_food_form_{st.session_state.food_form_key}"):
             fp_item = st.text_input(
@@ -743,6 +764,57 @@ elif user_is_configured(profile):
                 st.success(f"Added **{fp_item.strip()}**!")
                 st.session_state.food_form_key += 1
                 st.rerun()
+
+        # ── Existing preferences list below ──
+        food_prefs = get_food_preferences(profile["user_name"])
+
+        if food_prefs:
+            st.divider()
+            st.markdown("#### 📋 Your Preferences")
+            for fp in food_prefs:
+                fcol1, fcol2, fcol3 = st.columns([3, 2, 1])
+                with fcol1:
+                    st.write(f"**{fp['item_name']}**")
+                with fcol2:
+                    badge_colors = {
+                        "staple": "🟢", "avoid": "🔴", "allergy": "⛔",
+                        "like": "👍", "dislike": "👎",
+                    }
+                    icon = badge_colors.get(fp.get("preference_type", ""), "⚪")
+                    st.caption(f"{icon} {fp.get('preference_type', '')}")
+                with fcol3:
+                    if st.button("🗑️", key=f"del_fp_{fp['id']}"):
+                        delete_food_preference(fp["id"])
+                        st.rerun()
+                if fp.get("nutritional_goal"):
+                    st.caption(f"  _Goal: {fp['nutritional_goal']}_")
+
+    # ── Struggle Bus Tab ──────────────────────────────────────────────
+    with tab_struggle:
+        st.markdown("### 🚌 Struggle Bus")
+        st.markdown(
+            "Some days are harder than others — and that's okay. "
+            "Check off anything that's weighing on you today, then head back to "
+            "**Recommendations** and hit **🔄 Reset My Vibe** for a personalized pep talk."
+        )
+        st.divider()
+
+        # Two columns for a cleaner layout
+        scol1, scol2 = st.columns(2)
+        for i, item in enumerate(STRUGGLE_OPTIONS):
+            col = scol1 if i % 2 == 0 else scol2
+            with col:
+                st.checkbox(item, key=f"struggle_{item}")
+
+        # "Other" with text field
+        st.divider()
+        other_checked = st.checkbox("Other", key="struggle_Other")
+        if other_checked:
+            st.text_input(
+                "What else is on your mind?",
+                placeholder="Type here...",
+                key="struggle_other_text",
+            )
 
     # ── Edit Profile Tab ──────────────────────────────────────────────
     with tab_profile:
